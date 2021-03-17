@@ -1,0 +1,27 @@
+{
+  "name": "react-shop",
+  "version": "1.0.0",
+  "description": "Ecommerce site with MERN stack",
+  "main": "server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev-server": "nodemon backend/server.js",
+    "dev-client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run dev-server\" \"npm run dev-client\"",
+    "seeder:import": "node backend/seeder.js",
+    "seeder:destroy": "node backend/seeder.js -d"
+  },
+  "author": "Sergei Guzikov",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "mongoose": "^5.11.19"
+  },
+  "devDependencies": {
+    "concurrently": "^6.0.0",
+    "nodemon": "^2.0.7"
+  }
+}
