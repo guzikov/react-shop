@@ -2,9 +2,9 @@ import React, { useEffect } from 'react'
 import { Col, Row } from 'react-bootstrap-v5'
 import { useDispatch, useSelector } from 'react-redux'
 import { listProducts } from '../actions/productActions'
-import Product from './Product'
-import Message from './Message'
-import Loader from './Loader'
+import Product from '../components/Product'
+import Message from '../components/Message'
+import Loader from '../components/Loader'
 
 const HomeScreen = () => {
   const dispatch = useDispatch()
