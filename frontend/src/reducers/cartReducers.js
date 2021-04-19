@@ -14,6 +14,7 @@ export const cartReduser = (
       const existItem = state.cartItems.find(
         (item) => item.id === action.payload.id
       )
+
       if (existItem) {
         return {
           ...state,

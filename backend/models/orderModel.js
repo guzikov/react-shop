@@ -25,7 +25,7 @@ const orderModel = mongoose.Schema(
           type: Number,
           required: true,
         },
-        product: {
+        id: {
           type: mongoose.Schema.Types.ObjectId,
           required: true,
           ref: 'Product',
@@ -52,6 +52,11 @@ const orderModel = mongoose.Schema(
       status: { type: String },
       update_time: { type: String },
       email_address: { type: String },
+    },
+    itemsPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
     taxPrice: {
       type: Number,
