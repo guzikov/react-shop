@@ -6,6 +6,7 @@ import Message from '../components/Message'
 import Loader from '../components/Loader'
 import { useDispatch, useSelector } from 'react-redux'
 import { getOrderDetails, payOrder } from '../actions/orderActions'
+import { ORDER_PAY_RESET } from '../constants/orderConstants'
 import axios from 'axios'
 
 const OrderScreen = ({ match }) => {
@@ -21,6 +22,17 @@ const OrderScreen = ({ match }) => {
   const orderPay = useSelector((state) => state.orderPay)
   const { loading: loadingPay, success: successPay } = orderPay
 
+  if (!loading) {
+    //calculate prices
+    const addDecimals = (num) => {
+      return (Math.round(num * 100) / 100).toFixed(2)
+    }
+
+    order.itemsPrice = addDecimals(
+      order.orderItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+    )
+  }
+
   useEffect(() => {
     const addPayPalScript = async () => {
       const { data: clientId } = await axios.get('/api/config/paypal')
@@ -35,6 +47,7 @@ const OrderScreen = ({ match }) => {
     }
 
     if (!order || order._id !== orderId || successPay) {
+      dispatch({ type: ORDER_PAY_RESET })
       dispatch(getOrderDetails(orderId))
     } else if (!order.isPaid) {
       if (!window.paypal) {
@@ -45,9 +58,17 @@ const OrderScreen = ({ match }) => {
     }
   }, [dispatch, order, orderId, successPay])
 
-  const successPaymentHandler = (paymentResult) => {
-    console.log(paymentResult)
-    dispatch(payOrder, orderId, paymentResult)
+  const successPaymentHandler = (e) => {
+    //Mocking PayPal payment with just example data
+    console.log('payed!')
+    const paymentResult = {
+      id: 123456,
+      status: 'success',
+      update_time: Date.now(),
+      email_address: 'payer_email@test.com',
+    }
+    console.log('orderId', orderId)
+    dispatch(payOrder(orderId, paymentResult))
   }
 
   return loading ? (
@@ -158,20 +179,15 @@ const OrderScreen = ({ match }) => {
                 </Row>
               </ListGroup.Item>
             </ListGroup>
-            {!order.isPaid && (
-              <ListGroup.Item>
-                {loadingPay ? (
-                  <Loader />
-                ) : !sdkReady ? (
-                  <Loader />
-                ) : (
-                  <PayPalButton
-                    amount={order.totalPrice}
-                    onSuccess={successPaymentHandler}
-                  />
-                )}
-              </ListGroup.Item>
-            )}
+            <ListGroup.Item>
+              <Button
+                type='button'
+                className='btn-block'
+                onClick={successPaymentHandler}
+              >
+                Pay ${order.totalPrice}
+              </Button>
+            </ListGroup.Item>
           </Card>
         </Col>
       </Row>
