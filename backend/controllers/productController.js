@@ -66,19 +66,19 @@ const updateProduct = asyncHandler(async (req, res) => {
     description,
     countInStock,
   } = req.body
-
+  console.log('body', req.body)
   const product = await Product.findById(req.params.id)
 
   if (product) {
     product.name = name
-    product.category = category
-    product.price = price
-    product.brand = brand
-    product.image = image
-    product.description = description
-    product.countInStock = countInStock
+    product.category = category || product.category
+    product.price = price || product.price
+    product.brand = brand || product.brand
+    product.image = image || product.image
+    product.description = description || product.description
+    product.countInStock = countInStock || product.countInStock
 
-    const updatedProduct = product.save()
+    const updatedProduct = await product.save()
     res.json(updatedProduct)
   } else {
     res.status(404).json({ message: 'product not fount' })

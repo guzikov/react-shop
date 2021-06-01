@@ -4,7 +4,12 @@ import { Table, Button, Row, Col } from 'react-bootstrap-v5'
 import { useDispatch, useSelector } from 'react-redux'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
-import { listProducts, deleteProduct } from '../actions/productActions'
+import {
+  listProducts,
+  deleteProduct,
+  createProduct,
+} from '../actions/productActions'
+import { PRODUCT_CREATE_RESET } from '../constants/productConstants'
 
 const ProductListScreen = ({ history, match }) => {
   const dispatch = useDispatch()
@@ -21,13 +26,33 @@ const ProductListScreen = ({ history, match }) => {
     success: productDeleteSuccess,
   } = productDelete
 
+  const productCreate = useSelector((state) => state.productCreate)
+  const {
+    loading: productCreateLoading,
+    error: productCreateError,
+    success: productCreateSuccess,
+    product: createdProduct,
+  } = productCreate
+
   useEffect(() => {
-    if (userInfo && userInfo.isAdmin) {
-      dispatch(listProducts())
-    } else {
+    dispatch({ type: PRODUCT_CREATE_RESET })
+    if (!userInfo.isAdmin) {
       history.push('/login')
     }
-  }, [dispatch, history, userInfo, productDeleteSuccess])
+
+    if (productCreateSuccess) {
+      history.push(`/admin/product/${createdProduct._id}/edit`)
+    } else {
+      dispatch(listProducts())
+    }
+  }, [
+    dispatch,
+    history,
+    userInfo,
+    productDeleteSuccess,
+    productCreateSuccess,
+    createdProduct,
+  ])
 
   const deleteHandler = (id) => {
     if (window.confirm('Are you sure to delete this product?')) {
@@ -36,7 +61,7 @@ const ProductListScreen = ({ history, match }) => {
   }
 
   const createProductHandler = (product) => {
-    // CREATE PRODUCT
+    dispatch(createProduct())
   }
 
   return (
@@ -51,6 +76,10 @@ const ProductListScreen = ({ history, match }) => {
           </Button>
         </Col>
       </Row>
+      {productCreateLoading && <Loader />}
+      {productCreateError && (
+        <Message variant='danger'>{productCreateError}</Message>
+      )}
       {productDeleteLoading && <Loader />}
       {productDeleteError && (
         <Message variant='danger'>{productDeleteError}</Message>
