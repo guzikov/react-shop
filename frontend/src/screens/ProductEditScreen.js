@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
+import axios from 'axios'
 import { Link } from 'react-router-dom'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
 import { Form, Button } from 'react-bootstrap-v5'
-import { listProductDetails } from '../actions/productActions'
+import {listProductDetails, updateProduct} from '../actions/productActions'
 import { useDispatch, useSelector } from 'react-redux'
+import {PRODUCT_UPDATE_RESET} from "../constants/productConstants";
 
 const ProductEditScreen = ({ match, history }) => {
   const productId = match.params.id
@@ -16,28 +18,67 @@ const ProductEditScreen = ({ match, history }) => {
   const [category, setCategory] = useState('')
   const [countInStock, setCountInStock] = useState(0)
   const [image, setImage] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const dispatch = useDispatch()
-  const productDetails = useSelector((state) => {console.log(state); return state.productDetails})
+  const productDetails = useSelector(state => state.productDetails)
   const { loading, error, product } = productDetails
 
+  const productUpdate = useSelector(state => state.productUpdate)
+  const {loading: loadingUpdate, error: errorUpdate, success: successUpdate} = productUpdate
+
   useEffect(() => {
-    if (!product.name || product._id !== productId) {
-      console.log('in use effect before dispatch', product,name)
-      dispatch(listProductDetails(productId))
+    if (successUpdate) {
+      dispatch({ type: PRODUCT_UPDATE_RESET});
+      history.push('/admin/productList')
     } else {
-      setName(product.name)
-      setPrice(product.price)
-      setBrand(product.brand)
-      setImage(product.image)
-      setCategory(product.category)
-      setCountInStock(product.countInStock)
-      setDescription(product.description)
+      if (!product.name || product._id !== productId) {
+        dispatch(listProductDetails(productId))
+      } else {
+        setName(product.name)
+        setPrice(product.price)
+        setBrand(product.brand)
+        setImage(product.image)
+        setCategory(product.category)
+        setCountInStock(product.countInStock)
+        setDescription(product.description)
+      }
     }
-  }, [dispatch, product.name, productId])
+  }, [dispatch, product, productId, successUpdate, history])
 
   const submitHandler = (e) => {
     e.preventDefault()
+    dispatch(updateProduct({
+      _id: productId,
+      name,
+      price,
+      brand,
+      image,
+      category,
+      countInStock,
+      description
+    }))
+  }
+
+  const uploadFileHandler = async (e) => {
+    const file = e.target.files[0]
+    const formData = new FormData()
+    formData.append('image', file)
+    setUploading(true)
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+
+      const { data } = await axios.post('/api/upload', formData, config)
+      setImage(data)
+      setUploading(false)
+    } catch (error) {
+      console.log(error)
+      setUploading(false)
+    }
   }
   return (
     <>
@@ -46,6 +87,8 @@ const ProductEditScreen = ({ match, history }) => {
       </Link>
       <FormContainer>
         <h1>Edit Product</h1>
+        { loadingUpdate && ( <Loader/>) }
+        { errorUpdate && (<Message variant='danger'>{errorUpdate}</Message>) }
         {loading ? (
           <Loader />
         ) : error ? (
@@ -80,6 +123,8 @@ const ProductEditScreen = ({ match, history }) => {
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
               ></Form.Control>
+              <Form.File id='image-file' label='Choose file' custom="true" onChange={uploadFileHandler}></Form.File>
+              {uploading && <Loader/>}
             </Form.Group>
 
             <Form.Group className='my-4' controlId='brand'>

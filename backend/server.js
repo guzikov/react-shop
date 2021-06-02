@@ -2,9 +2,11 @@ const express = require('express')
 const connectDB = require('./config/db')
 const dotenv = require('dotenv').config()
 const connectDb = require('./config/db')
+const path = require('path')
 const productRoutes = require('./routes/productRoutes')
 const userRoutes = require('./routes/userRoutes')
 const orderRoutes = require('./routes/orderRoutes')
+const uploadRoutes = require('./routes/uploadRoutes')
 const { notFound, errorHandler } = require('./middleware/errorMiddleware')
 
 connectDB()
@@ -15,6 +17,9 @@ app.use(express.json())
 app.use('/api/products', productRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/upload', uploadRoutes)
+
+app.use('/uploads', express.static(path.join(__dirname, '/../uploads')))
 
 //Get PAYPAL config
 app.get('/api/config/paypal', (req, res) =>

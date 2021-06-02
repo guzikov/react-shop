@@ -66,7 +66,6 @@ const updateProduct = asyncHandler(async (req, res) => {
     description,
     countInStock,
   } = req.body
-  console.log('body', req.body)
   const product = await Product.findById(req.params.id)
 
   if (product) {
