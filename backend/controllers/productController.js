@@ -5,7 +5,15 @@ const Product = require('../models/productModel')
 //@method GET /api/products
 //@Access Public
 const getProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({})
+  const keyword = req.query.keyword
+    ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: 'i',
+        },
+      }
+    : {}
+  const products = await Product.find({ ...keyword })
   res.status(200).json(products)
 })
 
@@ -57,15 +65,8 @@ const createProduct = asyncHandler(async (req, res) => {
 //@method PUT /api/products/:id
 //@Access Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const {
-    name,
-    category,
-    price,
-    brand,
-    image,
-    description,
-    countInStock,
-  } = req.body
+  const { name, category, price, brand, image, description, countInStock } =
+    req.body
   const product = await Product.findById(req.params.id)
 
   if (product) {
@@ -88,16 +89,16 @@ const updateProduct = asyncHandler(async (req, res) => {
 //@method POST /api/products/:id/reviews
 //@Access Private
 const createProductReview = asyncHandler(async (req, res) => {
-  const {
-    rating, comment
-  } = req.body
+  const { rating, comment } = req.body
   const product = await Product.findById(req.params.id)
 
   if (product) {
-    const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user._id.toString())
+    const alreadyReviewed = product.reviews.find(
+      (r) => r.user.toString() === req.user._id.toString()
+    )
 
     if (alreadyReviewed) {
-      res.status(400);
+      res.status(400)
       throw new Error('Product already reviewed by user')
     }
 
@@ -110,11 +111,12 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     product.reviews.push(review)
     product.numReviews = product.reviews.length
-    product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.numReviews;
+    product.rating =
+      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      product.numReviews
 
-    await product.save();
-    res.status(201).json({ message: 'Review Added' });
-
+    await product.save()
+    res.status(201).json({ message: 'Review Added' })
   } else {
     res.status(404).json({ message: 'product not fount' })
   }
