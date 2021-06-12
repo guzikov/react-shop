@@ -6,6 +6,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import { getUserDetails, updateUserProfile } from '../actions/userActions'
 import { useDispatch, useSelector } from 'react-redux'
 import { listMyOrders } from '../actions/orderActions'
+import { USER_UPDATE_PROFILE_RESET } from '../constants/userConstants'
 
 const ProfileScreen = ({ location, history }) => {
   const [name, setName] = useState('')
@@ -32,8 +33,9 @@ const ProfileScreen = ({ location, history }) => {
     if (!userInfo) {
       history.push('/login')
     } else {
-      if (!user.name) {
+      if (!user || !user.name || success) {
         // not ID but profile string
+        dispatch({ type: USER_UPDATE_PROFILE_RESET })
         dispatch(getUserDetails('profile'))
         dispatch(listMyOrders())
       } else {
@@ -41,7 +43,7 @@ const ProfileScreen = ({ location, history }) => {
         setEmail(user.email)
       }
     }
-  }, [dispatch, userInfo, history, user])
+  }, [dispatch, userInfo, history, user, success])
 
   const submitHandler = (e) => {
     e.preventDefault()
